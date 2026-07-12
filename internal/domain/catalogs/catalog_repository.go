@@ -20,11 +20,11 @@ type CatalogRepository struct {
 }
 
 func NewCatalogRepository(db *gorm.DB, schema string) *CatalogRepository {
-	return &CatalogRepository{db: db, schema: strings.ToUpper(strings.TrimSpace(schema))}
+	return &CatalogRepository{db: db, schema: strings.ToLower(strings.TrimSpace(schema))}
 }
 func (r *CatalogRepository) GetLatest(ctx context.Context) (Catalog, error) {
 	var row catalogRow
-	result := r.db.WithContext(ctx).Raw("SELECT ID, FILE_NAME, FILE_URL, CREATED_AT, UPDATED_AT FROM "+dbutil.QualifiedTable(r.schema, "M_KATALOG")+" WHERE STATUS = ? ORDER BY UPDATED_AT DESC, CREATED_AT DESC FETCH NEXT 1 ROWS ONLY", "PUBLISHED").Scan(&row)
+	result := r.db.WithContext(ctx).Raw("SELECT ID, FILE_NAME, FILE_URL, CREATED_AT, UPDATED_AT FROM "+dbutil.QualifiedTable(r.schema, "M_KATALOG")+" WHERE STATUS = ? ORDER BY UPDATED_AT DESC, CREATED_AT DESC LIMIT 1", "PUBLISHED").Scan(&row)
 	if result.Error != nil {
 		return Catalog{}, fmt.Errorf("query latest catalog: %w", result.Error)
 	}
@@ -40,7 +40,7 @@ func (r *CatalogRepository) GetActive(ctx context.Context) (MonthlyCatalog, erro
 		Size              int64
 		PublishedAt       time.Time
 	}
-	result := r.db.WithContext(ctx).Raw("SELECT TITLE AS FILE_NAME, MINIO_PATH AS FILE_URL, NVL(FILE_SIZE, 0) AS SIZE, CREATED_AT AS PUBLISHED_AT FROM " + dbutil.QualifiedTable(r.schema, "MONTHLY_CATALOGS") + " ORDER BY CREATED_AT DESC FETCH NEXT 1 ROWS ONLY").Scan(&row)
+	result := r.db.WithContext(ctx).Raw("SELECT TITLE AS FILE_NAME, MINIO_PATH AS FILE_URL, COALESCE(FILE_SIZE, 0) AS SIZE, CREATED_AT AS PUBLISHED_AT FROM " + dbutil.QualifiedTable(r.schema, "MONTHLY_CATALOGS") + " ORDER BY CREATED_AT DESC LIMIT 1").Scan(&row)
 	if result.Error != nil {
 		return MonthlyCatalog{}, fmt.Errorf("query active monthly catalog: %w", result.Error)
 	}

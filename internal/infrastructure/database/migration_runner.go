@@ -20,24 +20,24 @@ type Migration struct {
 }
 
 type schemaMigration struct {
-	Version     string    `gorm:"column:VERSION;primaryKey;size:50"`
-	Description string    `gorm:"column:DESCRIPTION;not null;size:255"`
-	Checksum    string    `gorm:"column:CHECKSUM;not null;size:100"`
-	AppliedAt   time.Time `gorm:"column:APPLIED_AT;not null"`
+	Version     string    `gorm:"column:version;primaryKey;size:50"`
+	Description string    `gorm:"column:description;not null;size:255"`
+	Checksum    string    `gorm:"column:checksum;not null;size:100"`
+	AppliedAt   time.Time `gorm:"column:applied_at;not null"`
 }
 
 func (schemaMigration) TableName() string {
-	return "GORM_SCHEMA_MIGRATIONS"
+	return "gorm_schema_migrations"
 }
 
 // RunMigrations applies pending migrations in version order and records each success.
 func RunMigrations(db *gorm.DB, schema string, available []Migration) error {
-	schema = strings.ToUpper(strings.TrimSpace(schema))
-	if schema != "" && !validOracleIdentifier(schema) {
+	schema = strings.ToLower(strings.TrimSpace(schema))
+	if schema != "" && !validPostgresIdentifier(schema) {
 		return fmt.Errorf("migration schema %q tidak valid", schema)
 	}
 
-	historyTable := qualifiedTable(schema, "GORM_SCHEMA_MIGRATIONS")
+	historyTable := qualifiedTable(schema, "gorm_schema_migrations")
 	if err := prepareMigrationHistory(db, schema, historyTable); err != nil {
 		return fmt.Errorf("prepare migration history: %w", err)
 	}
@@ -62,8 +62,8 @@ func RunMigrations(db *gorm.DB, schema string, available []Migration) error {
 			if applied.Checksum != item.Checksum {
 				if applied.Version == "001" && applied.Checksum == "v001-create-gorm-migration-example-v1" {
 					if err := historyDB.Model(&schemaMigration{}).
-						Where("VERSION = ?", applied.Version).
-						Update("CHECKSUM", item.Checksum).Error; err != nil {
+						Where("version = ?", applied.Version).
+						Update("checksum", item.Checksum).Error; err != nil {
 						return fmt.Errorf("upgrade migration %s checksum: %w", item.Version, err)
 					}
 					continue
@@ -132,8 +132,8 @@ func isIgnorableMigrationError(statement string, err error) bool {
 	}
 
 	normalizedError := strings.ToUpper(err.Error())
-	return strings.Contains(normalizedError, "ORA-00955") ||
-		strings.Contains(normalizedError, "NAME IS ALREADY USED BY AN EXISTING OBJECT")
+	return strings.Contains(normalizedError, "SQLSTATE 42P07") ||
+		strings.Contains(normalizedError, "ALREADY EXISTS")
 }
 
 func splitSQLStatements(script string) []string {
@@ -205,10 +205,10 @@ func splitSQLStatements(script string) []string {
 	return statements
 }
 
-var oracleIdentifierPattern = regexp.MustCompile(`^[A-Z][A-Z0-9_$#]*$`)
+var postgresIdentifierPattern = regexp.MustCompile(`^[a-z_][a-z0-9_$]*$`)
 
-func validOracleIdentifier(value string) bool {
-	return oracleIdentifierPattern.MatchString(value)
+func validPostgresIdentifier(value string) bool {
+	return postgresIdentifierPattern.MatchString(value)
 }
 
 func qualifiedTable(schema, table string) string {
@@ -225,7 +225,7 @@ func prepareMigrationHistory(db *gorm.DB, schema, table string) error {
 		return db.AutoMigrate(&schemaMigration{})
 	}
 
-	exists, err := oracleTableExists(db, schema, "GORM_SCHEMA_MIGRATIONS")
+	exists, err := postgresTableExists(db, schema, "gorm_schema_migrations")
 	if err != nil {
 		return err
 	}
@@ -235,12 +235,12 @@ func prepareMigrationHistory(db *gorm.DB, schema, table string) error {
 	return db.Table(table).Migrator().CreateTable(&schemaMigration{})
 }
 
-func oracleTableExists(db *gorm.DB, schema, table string) (bool, error) {
+func postgresTableExists(db *gorm.DB, schema, table string) (bool, error) {
 	var count int64
 	result := db.Raw(
-		"SELECT COUNT(*) FROM ALL_TABLES WHERE OWNER = ? AND TABLE_NAME = ?",
+		"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ?",
 		schema,
-		table,
+		strings.ToLower(table),
 	).Scan(&count)
 	return count > 0, result.Error
 }

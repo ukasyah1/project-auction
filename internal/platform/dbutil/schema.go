@@ -2,9 +2,9 @@ package dbutil
 
 import "strings"
 
-// QualifiedTable returns a safely normalized Oracle schema-qualified table name.
+// QualifiedTable returns a normalized PostgreSQL schema-qualified table name.
 func QualifiedTable(schema, table string) string {
-	schema = strings.ToUpper(strings.TrimSpace(schema))
+	schema = strings.ToLower(strings.TrimSpace(schema))
 	if schema == "" {
 		return table
 	}

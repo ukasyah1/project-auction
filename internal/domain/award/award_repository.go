@@ -38,7 +38,7 @@ func (r *AwardRepository) GetAll(ctx context.Context) ([]Award, error) {
 		SELECT ID, IMG_SRC, INPUT_DATE, SEQ, STATUS,
 		       CREATED_BY, CREATED_AT, UPDATED_BY, UPDATED_AT,
 		       IS_DELETED, DELETED_BY, DELETED_AT, FILE_NAME
-		FROM CMS.MST_AWARDS
+		FROM public.MST_AWARDS
 		WHERE IS_DELETED = ?
 		ORDER BY SEQ ASC`, 0).Scan(&models)
 	if result.Error != nil {

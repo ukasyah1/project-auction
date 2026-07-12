@@ -1,13 +1,13 @@
 # New Website Lelang API
 
-Boilerplate backend Go dengan Gin sebagai HTTP framework, GORM sebagai ORM, dan SQLite sebagai database lokal. Struktur aplikasi memakai pendekatan Domain-Driven Design (DDD) sederhana dan dependency inversion.
+Backend Go dengan Gin sebagai HTTP framework, GORM sebagai ORM, dan PostgreSQL sebagai database. Struktur aplikasi memakai pendekatan Domain-Driven Design (DDD) sederhana dan dependency inversion.
 
 ## Struktur
 
 ```text
 cmd/api/                         composition root dan HTTP server
 internal/domain/reference/       entity, repository port, dan domain service
-internal/infrastructure/database/ koneksi SQLite dan repository GORM
+internal/infrastructure/database/ koneksi PostgreSQL dan repository GORM
 internal/infrastructure/test/     seluruh unit dan black-box test
 internal/interfaces/httpapi/      Gin handler, DTO, mapper, dan router
 ```
@@ -27,18 +27,17 @@ docker build -t lelang-api .
 docker run --rm -p 8080:8080 lelang-api
 ```
 
-Port default untuk local adalah `80`. Image Docker menggunakan port `8080`.
+Port aplikasi dikonfigurasi melalui `.env`.
 
 Konfigurasi opsional:
 
 ```bash
-PORT=80
-SQLITE_PATH=lelang.db
-DATABASE_URL=jdbc:oracle:thin:@//localhost:1521/FREEPDB1
-DATABASE_USERNAME=system
+PORT=8080
+DATABASE_URL=jdbc:postgresql://localhost:5432/weblelang
+DATABASE_USERNAME=cms
 DATABASE_PASSWORD=your-password
 RUN_MIGRATIONS=false
-MIGRATION_SCHEMA=CMS
+MIGRATION_SCHEMA=public
 ```
 
 ## Deploy: build source di server dengan Docker Compose
@@ -46,10 +45,10 @@ MIGRATION_SCHEMA=CMS
 Server hanya membutuhkan Git, Docker, dan Docker Compose. Go tidak perlu di-install
 di server karena proses `go build` dijalankan oleh stage builder di `Dockerfile`.
 
-Project ini sudah membaca konfigurasi Oracle dari environment variable. Redis tidak
+Project ini membaca konfigurasi PostgreSQL dari environment variable. Redis tidak
 ditambahkan karena aplikasi saat ini tidak menggunakannya.
 
-1. Pastikan Oracle sudah berjalan dan tergabung ke external network yang sama.
+1. Pastikan PostgreSQL dapat diakses dari container aplikasi.
 
    ```bash
    docker network create shared-network
@@ -68,8 +67,8 @@ ditambahkan karena aplikasi saat ini tidak menggunakannya.
    nano .env
    ```
 
-   Isi `DATABASE_URL` dengan hostname container Oracle pada `shared-network`, bukan
-   `localhost`. Contoh: `jdbc:oracle:thin:@//shared-oracle:1521/XEPDB1`.
+   Isi `DATABASE_URL` dengan alamat PostgreSQL. Contoh:
+   `jdbc:postgresql://postgres-host:5432/weblelang`.
 
 3. Validasi, build image dari source, dan jalankan container.
 

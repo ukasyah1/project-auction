@@ -37,7 +37,7 @@ func main() {
 func run() error {
 	config := loadConfig()
 
-	db, err := openApplicationOracleDB(config)
+	db, err := openApplicationPostgresDB(config)
 	if err != nil {
 		return err
 	}
@@ -88,8 +88,8 @@ func buildMasterDataHandler(db *gorm.DB, schema string) *masterdata.ReferenceHan
 	return masterdata.NewReferenceHandler(service)
 }
 
-func openApplicationOracleDB(config appConfig) (*gorm.DB, error) {
-	db, err := database.OpenOracle(
+func openApplicationPostgresDB(config appConfig) (*gorm.DB, error) {
+	db, err := database.OpenPostgres(
 		config.databaseURL,
 		config.databaseUsername,
 		config.databasePassword,

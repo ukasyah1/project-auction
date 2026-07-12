@@ -20,7 +20,7 @@ type ScheduleRepository struct {
 }
 
 func NewScheduleRepository(db *gorm.DB, schema string) *ScheduleRepository {
-	return &ScheduleRepository{db: db, schema: strings.ToUpper(strings.TrimSpace(schema))}
+	return &ScheduleRepository{db: db, schema: strings.ToLower(strings.TrimSpace(schema))}
 }
 func (r *ScheduleRepository) Search(ctx context.Context, q Query) (Result, error) {
 	from := " FROM " + dbutil.QualifiedTable(r.schema, "ASSETS") + " a JOIN " + dbutil.QualifiedTable(r.schema, "M_KPKNL") + " k ON k.ID=a.KPKNL_ID"
@@ -45,7 +45,7 @@ func (r *ScheduleRepository) Search(ctx context.Context, q Query) (Result, error
 	}
 	rows := []scheduleRow{}
 	pageArgs := append(args, (q.Page-1)*q.Limit, q.Limit)
-	sql := "SELECT a.ID AS ASSET_ID,a.START_DATE AS AUCTION_DATE,a.ZONA_WAKTU AS TIMEZONE,k.ID AS KPKNL_ID,k.NAMA_KANTOR AS KPKNL_NAME,a.ALAMAT AS ADDRESS,a.LINK_LELANG AS AUCTION_LINK" + from + where + " ORDER BY a.START_DATE ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+	sql := "SELECT a.ID AS ASSET_ID,a.START_DATE AS AUCTION_DATE,a.ZONA_WAKTU AS TIMEZONE,k.ID AS KPKNL_ID,k.NAMA_KANTOR AS KPKNL_NAME,a.ALAMAT AS ADDRESS,a.LINK_LELANG AS AUCTION_LINK" + from + where + " ORDER BY a.START_DATE ASC OFFSET ? LIMIT ?"
 	if err := r.db.WithContext(ctx).Raw(sql, pageArgs...).Scan(&rows).Error; err != nil {
 		return Result{}, fmt.Errorf("query schedules: %w", err)
 	}

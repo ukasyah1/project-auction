@@ -27,12 +27,12 @@ type AssetRepository struct{ db *gorm.DB }
 func NewAssetRepository(db *gorm.DB) *AssetRepository { return &AssetRepository{db: db} }
 
 func (r *AssetRepository) Search(ctx context.Context, query SearchQuery) (SearchResult, error) {
-	from := ` FROM CMS.ASSETS a
-		LEFT JOIN CMS.M_TIPE_ASET ta ON ta.ID = a.TIPE_ASET_ID
-		LEFT JOIN CMS.M_KATEGORI k ON k.ID = ta.KATEGORI_ID
-		LEFT JOIN CMS.M_PROVINSI p ON p.ID = a.PROVINSI_ID
-		LEFT JOIN CMS.M_KOTA ko ON ko.ID = a.KOTA_ID
-		LEFT JOIN CMS.M_KPKNL kp ON kp.ID = a.KPKNL_ID`
+	from := ` FROM public.ASSETS a
+		LEFT JOIN public.M_TIPE_ASET ta ON ta.ID = a.TIPE_ASET_ID
+		LEFT JOIN public.M_KATEGORI k ON k.ID = ta.KATEGORI_ID
+		LEFT JOIN public.M_PROVINSI p ON p.ID = a.PROVINSI_ID
+		LEFT JOIN public.M_KOTA ko ON ko.ID = a.KOTA_ID
+		LEFT JOIN public.M_KPKNL kp ON kp.ID = a.KPKNL_ID`
 	where, args := assetWhere(query)
 	var total int64
 	if err := r.db.WithContext(ctx).Raw("SELECT COUNT(*)"+from+where, args...).Scan(&total).Error; err != nil {
@@ -41,7 +41,7 @@ func (r *AssetRepository) Search(ctx context.Context, query SearchQuery) (Search
 	selectSQL := assetSelectSQL
 	args = append(args, (query.Page-1)*query.Limit, query.Limit)
 	var rows []assetRow
-	if err := r.db.WithContext(ctx).Raw(selectSQL+from+where+" ORDER BY a.CREATED_AT DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY", args...).Scan(&rows).Error; err != nil {
+	if err := r.db.WithContext(ctx).Raw(selectSQL+from+where+" ORDER BY a.CREATED_AT DESC OFFSET ? LIMIT ?", args...).Scan(&rows).Error; err != nil {
 		return SearchResult{}, fmt.Errorf("query CMS.ASSETS: %w", err)
 	}
 	resultAssets := make([]Asset, len(rows))
@@ -51,12 +51,12 @@ func (r *AssetRepository) Search(ctx context.Context, query SearchQuery) (Search
 	return SearchResult{Assets: resultAssets, Total: total}, nil
 }
 
-const assetFromSQL = ` FROM CMS.ASSETS a
-	LEFT JOIN CMS.M_TIPE_ASET ta ON ta.ID = a.TIPE_ASET_ID
-	LEFT JOIN CMS.M_KATEGORI k ON k.ID = ta.KATEGORI_ID
-	LEFT JOIN CMS.M_PROVINSI p ON p.ID = a.PROVINSI_ID
-	LEFT JOIN CMS.M_KOTA ko ON ko.ID = a.KOTA_ID
-	LEFT JOIN CMS.M_KPKNL kp ON kp.ID = a.KPKNL_ID`
+const assetFromSQL = ` FROM public.ASSETS a
+	LEFT JOIN public.M_TIPE_ASET ta ON ta.ID = a.TIPE_ASET_ID
+	LEFT JOIN public.M_KATEGORI k ON k.ID = ta.KATEGORI_ID
+	LEFT JOIN public.M_PROVINSI p ON p.ID = a.PROVINSI_ID
+	LEFT JOIN public.M_KOTA ko ON ko.ID = a.KOTA_ID
+	LEFT JOIN public.M_KPKNL kp ON kp.ID = a.KPKNL_ID`
 
 const assetSelectSQL = `SELECT a.ID, a.KODE_ASET AS CODE, a.NAMA_ASET AS NAME, a.STATUS,
 	k.ID AS CATEGORY_ID, k.NAMA_KATEGORI AS CATEGORY_NAME, ta.ID AS ASSET_TYPE_ID, ta.NAMA_TIPE AS ASSET_TYPE_NAME,

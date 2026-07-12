@@ -102,7 +102,7 @@ func TestLoadExampleSQLMigration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load SQL migrations: %v", err)
 	}
-	if len(migrations) != 9 ||
+	if len(migrations) != 10 ||
 		migrations[0].Version != "001" ||
 		migrations[1].Version != "002" ||
 		migrations[2].Version != "003" ||
@@ -111,7 +111,8 @@ func TestLoadExampleSQLMigration(t *testing.T) {
 		migrations[5].Version != "006" ||
 		migrations[6].Version != "007" ||
 		migrations[7].Version != "008" ||
-		migrations[8].Version != "009" {
+		migrations[8].Version != "010" ||
+		migrations[9].Version != "011" {
 		t.Fatalf("unexpected migrations: %+v", migrations)
 	}
 	for _, migration := range migrations {
@@ -138,20 +139,20 @@ func TestMigrationExecutesMultipleStatements(t *testing.T) {
 	}
 }
 
-func TestCreateTableAlreadyExistsOracleErrorIsIgnorable(t *testing.T) {
-	err := errors.New("ORA-00955: name is already used by an existing object")
-	statement := "CREATE TABLE CMS.M_FAQ_CATEGORY (ID VARCHAR2(36) PRIMARY KEY)"
+func TestCreateTableAlreadyExistsPostgresErrorIsIgnorable(t *testing.T) {
+	err := errors.New("ERROR: relation already exists (SQLSTATE 42P07)")
+	statement := "CREATE TABLE public.M_FAQ_CATEGORY (ID VARCHAR(36) PRIMARY KEY)"
 
 	if !isIgnorableMigrationError(statement, err) {
-		t.Fatal("expected ORA-00955 from CREATE TABLE to be ignorable")
+		t.Fatal("expected SQLSTATE 42P07 from CREATE TABLE to be ignorable")
 	}
 }
 
-func TestNonCreateTableOracleErrorIsNotIgnorable(t *testing.T) {
-	err := errors.New("ORA-00955: name is already used by an existing object")
-	statement := "ALTER TABLE CMS.M_FAQ_CATEGORY ADD NAME VARCHAR2(100)"
+func TestNonCreateTablePostgresErrorIsNotIgnorable(t *testing.T) {
+	err := errors.New("ERROR: relation already exists (SQLSTATE 42P07)")
+	statement := "ALTER TABLE public.M_FAQ_CATEGORY ADD COLUMN NAME VARCHAR(100)"
 
 	if isIgnorableMigrationError(statement, err) {
-		t.Fatal("expected ORA-00955 from non-CREATE TABLE statement to fail")
+		t.Fatal("expected SQLSTATE 42P07 from non-CREATE TABLE statement to fail")
 	}
 }

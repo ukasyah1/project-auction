@@ -29,7 +29,7 @@ func (r *BannerRepository) GetActive(ctx context.Context) ([]Banner, error) {
 		       IMAGE_URL,
 		       TARGET_URL,
 		       ORDER_INDEX
-		FROM CMS.BANNER_SLIDER_PROMOSI
+		FROM public.BANNER_SLIDER_PROMOSI
 		WHERE IS_ACTIVE = ?
 		ORDER BY ORDER_INDEX ASC`, 1).Scan(&rows)
 	if result.Error != nil {

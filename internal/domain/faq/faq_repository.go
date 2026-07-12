@@ -32,8 +32,8 @@ func (r *FAQRepository) GetAll(ctx context.Context, lang string) ([]Category, er
 		       f.ID AS FAQ_ID,
 		       f.%s AS QUESTION,
 		       f.%s AS ANSWER
-		FROM CMS.M_FAQ_CATEGORY c
-		JOIN CMS.FAQS f ON f.CATEGORY_ID = c.ID
+		FROM public.M_FAQ_CATEGORY c
+		JOIN public.FAQS f ON f.CATEGORY_ID = c.ID
 		WHERE f.IS_ACTIVE = ?
 		ORDER BY c.ORDER_INDEX ASC, f.ORDER_INDEX ASC`, categoryNameColumn, questionColumn, answerColumn), 1).Scan(&rows)
 	if result.Error != nil {

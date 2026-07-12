@@ -89,7 +89,7 @@ func NewReferenceRepository(db *gorm.DB) *ReferenceRepository {
 
 // NewMasterDataRepository uses the schema selected through MIGRATION_SCHEMA.
 func NewMasterDataRepository(db *gorm.DB, schema string) *ReferenceRepository {
-	return &ReferenceRepository{db: db, schema: strings.ToUpper(strings.TrimSpace(schema))}
+	return &ReferenceRepository{db: db, schema: strings.ToLower(strings.TrimSpace(schema))}
 }
 
 func (r *ReferenceRepository) table(name string) string {

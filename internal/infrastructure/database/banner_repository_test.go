@@ -12,11 +12,11 @@ func TestBannerRepositoryGetActive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open test database: %v", err)
 	}
-	if err := db.Exec("ATTACH DATABASE ':memory:' AS CMS").Error; err != nil {
-		t.Fatalf("attach CMS schema: %v", err)
+	if err := db.Exec("ATTACH DATABASE ':memory:' AS public").Error; err != nil {
+		t.Fatalf("attach public schema: %v", err)
 	}
 	if err := db.Exec(`
-		CREATE TABLE CMS.BANNER_SLIDER_PROMOSI (
+		CREATE TABLE public.BANNER_SLIDER_PROMOSI (
 			ID TEXT PRIMARY KEY,
 			IMAGE_URL TEXT NOT NULL,
 			TARGET_URL TEXT,
@@ -26,7 +26,7 @@ func TestBannerRepositoryGetActive(t *testing.T) {
 		t.Fatalf("create banner table: %v", err)
 	}
 	if err := db.Exec(`
-		INSERT INTO CMS.BANNER_SLIDER_PROMOSI (ID, IMAGE_URL, TARGET_URL, ORDER_INDEX, IS_ACTIVE)
+		INSERT INTO public.BANNER_SLIDER_PROMOSI (ID, IMAGE_URL, TARGET_URL, ORDER_INDEX, IS_ACTIVE)
 		VALUES
 			('uuid-2', 'image-2', NULL, 2, 1),
 			('uuid-1', 'image-1', '/target-1', 1, 1),
