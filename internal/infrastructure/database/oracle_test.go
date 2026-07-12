@@ -27,3 +27,22 @@ func TestPostgresDSNRejectsInvalidURL(t *testing.T) {
 		t.Fatal("expected invalid URL error")
 	}
 }
+
+func TestPostgresDSNFromSeparateConfig(t *testing.T) {
+	dsn, err := BuildPostgresDSNFromConfig(
+		"host.docker.internal",
+		"5432",
+		"weblelang",
+		"cms",
+		"test-password",
+	)
+	if err != nil {
+		t.Fatalf("build PostgreSQL DSN from separate config: %v", err)
+	}
+
+	for _, expected := range []string{"host.docker.internal", "5432", "weblelang", "cms", "sslmode=disable"} {
+		if !strings.Contains(dsn, expected) {
+			t.Fatalf("expected DSN to contain %q", expected)
+		}
+	}
+}

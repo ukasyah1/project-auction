@@ -51,13 +51,15 @@ func run() error {
 	assetHandler := buildAssetHandler(db)
 
 	router := httpapi.NewRouter(referenceHandler, assetHandler, awardHandler, faqHandler, bannerHandler, catalogHandler, scheduleHandler, settingsHandler)
-	server := newHTTPServer(config.databasePort, router)
+	server := newHTTPServer(config.port, router)
 
-	return startAndWaitForShutdown(server, config.databasePort)
+	return startAndWaitForShutdown(server, config.port)
 }
 
 type appConfig struct {
+	port             string
 	databasePort     string
+	databaseName     string
 	databaseURL      string
 	databaseUsername string
 	databasePassword string
@@ -67,7 +69,9 @@ type appConfig struct {
 
 func loadConfig() appConfig {
 	return appConfig{
+		port:             os.Getenv("PORT"),
 		databasePort:     os.Getenv("DATABASE_PORT"),
+		databaseName:     os.Getenv("DATABASE_NAME"),
 		databaseURL:      os.Getenv("DATABASE_URL"),
 		databaseUsername: os.Getenv("DATABASE_USERNAME"),
 		databasePassword: os.Getenv("DATABASE_PASSWORD"),
@@ -91,6 +95,8 @@ func buildMasterDataHandler(db *gorm.DB, schema string) *masterdata.ReferenceHan
 func openApplicationPostgresDB(config appConfig) (*gorm.DB, error) {
 	db, err := database.OpenPostgres(
 		config.databaseURL,
+		config.databasePort,
+		config.databaseName,
 		config.databaseUsername,
 		config.databasePassword,
 	)
