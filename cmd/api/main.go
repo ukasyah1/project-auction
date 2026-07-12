@@ -51,9 +51,9 @@ func run() error {
 	assetHandler := buildAssetHandler(db)
 
 	router := httpapi.NewRouter(referenceHandler, assetHandler, awardHandler, faqHandler, bannerHandler, catalogHandler, scheduleHandler, settingsHandler)
-	server := newHTTPServer(config.port, router)
+	server := newHTTPServer(config.databasePort, router)
 
-	return startAndWaitForShutdown(server, config.port)
+	return startAndWaitForShutdown(server, config.databasePort)
 }
 
 type appConfig struct {
