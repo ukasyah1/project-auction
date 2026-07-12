@@ -78,11 +78,9 @@ func loadConfig() appConfig {
 	}
 }
 
-// loadEnvironment uses .env when available. The example file is a local fallback.
+// loadEnvironment loads the application's local environment configuration.
 func loadEnvironment() {
-	if err := godotenv.Load(); err != nil {
-		_ = godotenv.Load(".env.example")
-	}
+	_ = godotenv.Load(".env")
 }
 
 func getEnv(key, fallback string) string {

@@ -24,9 +24,6 @@ COPY --from=builder /app/application ./application
 
 USER appuser
 
-ENV PORT=8080 \
-    TZ=Asia/Jakarta
-
 EXPOSE 8080
 
 CMD ["./application"]
