@@ -57,8 +57,7 @@ func run() error {
 }
 
 type appConfig struct {
-	port             string
-	sqlitePath       string
+	databasePort     string
 	databaseURL      string
 	databaseUsername string
 	databasePassword string
@@ -68,27 +67,18 @@ type appConfig struct {
 
 func loadConfig() appConfig {
 	return appConfig{
-		port:             getEnv("PORT", "80"),
-		sqlitePath:       getEnv("SQLITE_PATH", "lelang.db"),
-		databaseURL:      getEnv("DATABASE_URL", os.Getenv("DATABASE_PATH")),
+		databasePort:     os.Getenv("DATABASE_PORT"),
+		databaseURL:      os.Getenv("DATABASE_URL"),
 		databaseUsername: os.Getenv("DATABASE_USERNAME"),
 		databasePassword: os.Getenv("DATABASE_PASSWORD"),
-		runMigrations:    getEnv("RUN_MIGRATIONS", "false") == "true",
-		migrationSchema:  getEnv("MIGRATION_SCHEMA", "CMS"),
+		runMigrations:    os.Getenv("RUN_MIGRATIONS") == "true",
+		migrationSchema:  os.Getenv("MIGRATION_SCHEMA"),
 	}
 }
 
 // loadEnvironment loads the application's local environment configuration.
 func loadEnvironment() {
 	_ = godotenv.Load(".env")
-}
-
-func getEnv(key, fallback string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-	return value
 }
 
 // buildReferenceHandler connects database -> repository -> service -> HTTP handler.
